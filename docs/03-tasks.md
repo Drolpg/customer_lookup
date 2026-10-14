@@ -38,8 +38,8 @@ Alvo: `integration/test_api_criar_consulta.py`, `test_api_obter_consulta.py`, `t
 
 ## M5 — API externa fake
 Alvo: `integration/test_fake_externo.py`
-- [ ] `fake_externo/app.py`: `/fake/customer`, `/fake/reset`, `/health`; cenários da spec §8.
-- [ ] Teste de cada cenário, incluindo a recuperação após N falhas e o reset.
+- [x] `fake_externo/app.py`: `/fake/customer`, `/fake/reset`, `/fake/chamadas`, `/health`; cenários da spec §8.
+- [x] Teste de cada cenário, incluindo a recuperação após N falhas e o reset.
 
 ## M6 — Integração e processamento
 Alvo: `unit/test_cliente_http.py`, `unit/test_politica_retry.py`, `integration/test_processar_consulta.py`

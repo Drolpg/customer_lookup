@@ -164,7 +164,8 @@ Documento nunca em claro (só mascarado, ex.: `***.982.247-**`, ou omitido).
 | `erro_inesperado` | stack trace |
 
 ## 8. API externa fake
-Aplicação separada (`POST /fake/customer`, `POST /fake/reset`, `GET /health`). O comportamento é decidido pelo
+Aplicação separada (`POST /fake/customer`, `POST /fake/reset`, `GET /fake/chamadas` com o total de chamadas
+por documento, `GET /health`). O comportamento é decidido pelo
 **último dígito** do documento:
 
 | Último dígito | Comportamento | Desfecho esperado na consulta |
