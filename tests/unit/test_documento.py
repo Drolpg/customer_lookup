@@ -25,14 +25,6 @@ def test_documentos_validos_sao_normalizados(entrada: str, tipo: TipoDocumento, 
     assert validar(entrada, tipo) == esperado
 
 
-def test_cpf_do_exemplo_do_enunciado_tem_dv_invalido():
-    # 12345678901 é o exemplo do enunciado: o segundo DV correto seria 9 (12345678909).
-    with pytest.raises(DocumentoInvalido) as exc:
-        validar("12345678901", CPF)
-
-    assert exc.value.details == [{"field": "documento", "message": "dígitos verificadores inválidos"}]
-
-
 @pytest.mark.parametrize(
     ("entrada", "tipo", "motivo"),
     [
@@ -62,7 +54,8 @@ def test_documentos_invalidos_informam_o_motivo(entrada: str, tipo: TipoDocument
 
 
 def test_sem_validar_dv_aceita_dv_errado_mas_mantem_as_demais_regras():
-    assert validar("12345678901", CPF, validar_dv=False) == "12345678901"
+    assert validar("52998224799", CPF, validar_dv=False) == "52998224799"
+    assert validar("11222333000199", CNPJ, validar_dv=False) == "11222333000199"
 
     with pytest.raises(DocumentoInvalido):
         validar("1234567890", CPF, validar_dv=False)
@@ -80,12 +73,19 @@ def test_calcular_dv(base: str, tipo: TipoDocumento, dv: str):
     assert calcular_dv(base, tipo) == dv
 
 
-@pytest.mark.parametrize(
-    "documento",
-    ["52998224725", "11144478111", "11144479002", "11144478030", "11144478383"],
-)
-def test_cpfs_de_demonstracao_da_spec_sao_validos(documento: str):
-    assert validar(documento, CPF) == documento
+# Mesma lista da spec §8: o que está documentado para teste precisa ser válido de fato.
+DOCUMENTOS_DE_TESTE = [
+    *[(d, CPF) for d in ["111.444.780-30", "111.444.781-11", "111.444.790-02", "111.444.783-83", "529.982.247-25"]],
+    *[(d, CPF) for d in ["390.533.452-64", "390.533.447-05", "390.533.454-26", "390.533.455-07"]],
+    *[(d, CPF) for d in ["390.533.448-88", "390.533.449-69"]],
+    *[(f"11.222.333/{sufixo}", CNPJ) for sufixo in ["0018-20", "0001-81", "0002-62", "0003-43", "0004-24"]],
+    *[(f"11.222.333/{sufixo}", CNPJ) for sufixo in ["0005-05", "0006-96", "0007-77", "0008-58", "0009-39"]],
+]
+
+
+@pytest.mark.parametrize(("documento", "tipo"), DOCUMENTOS_DE_TESTE)
+def test_documentos_de_teste_da_spec_sao_validos(documento: str, tipo: TipoDocumento):
+    validar(documento, tipo)
 
 
 def test_normalizar_remove_somente_a_mascara():

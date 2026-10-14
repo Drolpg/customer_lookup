@@ -20,7 +20,7 @@ def test_create_aceita_payload_valido():
 
 def test_create_nao_valida_digitos_do_documento():
     # A regra do documento (INVALID_DOCUMENT) fica no service; o schema só valida a forma.
-    assert ConsultaCreate.model_validate({"documento": "12345678901", "tipo": "CPF"}).documento == "12345678901"
+    assert ConsultaCreate.model_validate({"documento": "52998224799", "tipo": "CPF"}).documento == "52998224799"
 
 
 @pytest.mark.parametrize(

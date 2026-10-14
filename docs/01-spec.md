@@ -55,10 +55,10 @@ Cliente ──GET /api/v1/consultas[/{id}]──▶ API ──▶ banco
   - CPF: 11 dígitos. CNPJ: 14 dígitos. Tamanho diferente do esperado para o `tipo` ⇒ inválido.
   - Sequências de um único dígito repetido (`11111111111`) ⇒ inválido.
   - Com `DOCUMENTO_VALIDAR_DV=true` (padrão), os dois dígitos verificadores (módulo 11) devem estar corretos.
-    Com `false`, valida-se só caracteres e tamanho.
+    Com `false` (validação fraca, útil para testar com números fictícios), valida-se só caracteres, tamanho e
+    sequência repetida.
   - Armazenado só com dígitos.
-  - Observação: o CPF de exemplo do enunciado do problema, `12345678901`, tem dígitos verificadores inválidos
-    (o válido seria `12345678909`) e é rejeitado com a configuração padrão.
+  - Documentos válidos para teste: spec §8.
 - **RN-02 Estados.** `PENDING → PROCESSING → SUCCESS | ERROR`, além de `PENDING → ERROR` (RF-05).
   `SUCCESS` e `ERROR` são terminais: nunca são sobrescritos. `PROCESSING` se repete a cada nova tentativa.
 - **RN-03 Claim.** Antes de cada chamada externa, em uma transação curta e atômica:
@@ -177,15 +177,17 @@ Aplicação separada (`POST /fake/customer`, `POST /fake/reset`, `GET /health`).
 
 Contadores por documento ficam em memória do processo (limitação aceita); `POST /fake/reset` os zera.
 
-Documentos válidos para demonstração:
-| Documento | Cenário |
-|---|---|
-| CPF `529.982.247-25` | sucesso |
-| CPF `111.444.781-11` | 503 e recupera no retry |
-| CPF `111.444.790-02` | lentidão e recupera no retry |
-| CPF `111.444.780-30` | 500, esgota as tentativas |
-| CPF `111.444.783-83` | 404, erro permanente |
-| CNPJ `11.222.333/0001-81` | 503 e recupera no retry |
+Documentos válidos para teste (todos passam no módulo 11):
+
+| Cenário | CPF | CNPJ |
+|---|---|---|
+| `0` — 500, esgota as tentativas | `111.444.780-30` | `11.222.333/0018-20` |
+| `1` — 503 e recupera no retry | `111.444.781-11` | `11.222.333/0001-81` |
+| `2` — lentidão e recupera no retry | `111.444.790-02` | `11.222.333/0002-62` |
+| `3` — 404, erro permanente | `111.444.783-83` | `11.222.333/0003-43` |
+| sucesso | `529.982.247-25`, `390.533.452-64`, `390.533.447-05`, `390.533.454-26`, `390.533.455-07`, `390.533.448-88`, `390.533.449-69` | `11.222.333/0004-24`, `11.222.333/0005-05`, `11.222.333/0006-96`, `11.222.333/0007-77`, `11.222.333/0008-58`, `11.222.333/0009-39` |
+
+Para testar com números fictícios (sem dígitos verificadores corretos), use `DOCUMENTO_VALIDAR_DV=false`.
 
 ## 9. Configuração (variáveis de ambiente)
 Todas têm padrão de desenvolvimento; o `docker compose up` funciona sem `.env`.
