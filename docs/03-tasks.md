@@ -26,7 +26,7 @@ Alvo: `infra/test_migrations.py`
 - [x] `db/base.py`, `db/session.py`, `models/consulta.py` (enums `StatusConsulta`, `TipoDocumento`).
 - [x] Alembic: `env.py` com URL das settings e `disable_existing_loggers=False`; migração inicial revisada.
 - [x] Teste: `upgrade head`, `downgrade base` e models sincronizados com a migração.
-- [ ] Validar `upgrade`/`downgrade` em Postgres real (coberto pelo E2E do M9).
+- [x] Validar `upgrade` em Postgres real (container da API no M9).
 
 ## M4 — Criação, obtenção e listagem
 Alvo: `integration/test_api_criar_consulta.py`, `test_api_obter_consulta.py`, `test_api_listar_consultas.py`
@@ -64,9 +64,9 @@ Alvo: `integration/test_auth.py`, `integration/test_rate_limit.py`, `integration
 
 ## M9 — Docker e E2E
 Alvo: `infra/test_docker_compose.py`, `e2e/test_e2e_compose.py`
-- [ ] `Dockerfile` multi-stage com uv e usuário não-root; `.dockerignore`.
-- [ ] `docker-compose.yml`: `api`, `worker`, `externo`, `db`, `redis`; healthchecks; sem `.env` obrigatório.
-- [ ] E2E: sucesso, recupera após retry, esgota, erro permanente.
+- [x] `Dockerfile` multi-stage com uv e usuário não-root; `.dockerignore`.
+- [x] `docker-compose.yml`: `api`, `worker`, `externo`, `db`, `redis`; healthchecks; sem `.env` obrigatório.
+- [x] E2E: sucesso, recupera após retry, esgota, erro permanente.
 
 ## M10 — Entrega
 Alvo: `integration/test_openapi.py`

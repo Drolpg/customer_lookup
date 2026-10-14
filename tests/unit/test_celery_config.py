@@ -37,6 +37,7 @@ def test_visibility_timeout_maior_que_o_maior_retry_possivel():
 def test_conexao_com_broker_falha_rapido():
     opcoes = celery_app.conf.broker_transport_options
     assert opcoes["socket_connect_timeout"] <= 3
+    assert opcoes["socket_timeout"] <= 3
     assert celery_app.conf.broker_connection_timeout <= 3
 
 

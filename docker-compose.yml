@@ -1,0 +1,118 @@
+# Serviço de consultas de clientes. Sobe com `docker compose up --build`, sem .env:
+# todas as variáveis têm padrão de desenvolvimento (veja .env.example para sobrescrever).
+name: customer-lookup
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-consultas}
+  REDIS_URL: redis://redis:6379/0
+  # Chave de desenvolvimento, documentada no README. Em produção viria de um cofre de segredos.
+  API_KEY: ${API_KEY:-chave-local-de-desenvolvimento}
+  RATE_LIMIT_POR_MINUTO: ${RATE_LIMIT_POR_MINUTO:-60}
+  DOCUMENTO_VALIDAR_DV: ${DOCUMENTO_VALIDAR_DV:-true}
+  EXTERNO_URL: http://externo:9000
+  EXTERNO_TIMEOUT_CONEXAO_S: ${EXTERNO_TIMEOUT_CONEXAO_S:-2}
+  EXTERNO_TIMEOUT_LEITURA_S: ${EXTERNO_TIMEOUT_LEITURA_S:-3}
+  # Padrões curtos para a demonstração não levar minutos (no código: base 2 s, teto 60 s).
+  RETRY_MAX_TENTATIVAS: ${RETRY_MAX_TENTATIVAS:-5}
+  RETRY_BASE_SEGUNDOS: ${RETRY_BASE_SEGUNDOS:-1}
+  RETRY_TETO_SEGUNDOS: ${RETRY_TETO_SEGUNDOS:-10}
+  WORKER_CONCORRENCIA: ${WORKER_CONCORRENCIA:-2}
+  TAREFA_RATE_LIMIT: ${TAREFA_RATE_LIMIT:-10/s}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+# Uma imagem para api, worker e externo. Só a api tem `build`: três builds simultâneos da mesma tag conflitam.
+x-app: &app
+  image: customer-lookup:latest
+  pull_policy: never
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *app
+    build: .
+    environment: *app-env
+    # Só a API aplica migrações; o worker espera a API ficar saudável (schema pronto).
+    command: sh -c "alembic upgrade head && uvicorn customer_lookup.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    <<: *app
+    environment: *app-env
+    command: celery -A customer_lookup.worker.celery_app worker --loglevel=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      externo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A customer_lookup.worker.celery_app inspect ping -d celery@$$HOSTNAME --timeout 5"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  externo:
+    <<: *app
+    environment:
+      FAKE_FALHAS_ANTES_DE_RECUPERAR: ${FAKE_FALHAS_ANTES_DE_RECUPERAR:-2}
+      FAKE_LENTIDAO_SEGUNDOS: ${FAKE_LENTIDAO_SEGUNDOS:-5}
+    # Um processo só: os contadores dos cenários ficam em memória.
+    command: uvicorn customer_lookup.fake_externo.app:app --host 0.0.0.0 --port 9000
+    # Exposto para a demonstração (/fake/chamadas, /fake/reset).
+    ports:
+      - "${FAKE_BIND:-127.0.0.1}:${FAKE_PORT:-9000}:9000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-consultas}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    # Sem 'ports': acessível só pela rede interna do compose.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    # AOF: mensagens da fila sobrevivem a um restart do Redis.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  redis_data:

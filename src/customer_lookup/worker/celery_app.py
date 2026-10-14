@@ -28,7 +28,7 @@ celery_app.conf.update(
         "visibility_timeout": 3600,
         # Com o Redis fora, o POST precisa falhar rápido (503), não pendurar a requisição.
         "socket_connect_timeout": 2,
-        "socket_timeout": 5,
+        "socket_timeout": 3,
     },
 )
 
