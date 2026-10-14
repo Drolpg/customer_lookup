@@ -9,11 +9,11 @@ Cada marco: escrever os testes (RED) → implementar o mínimo (GREEN) → refat
 
 ## M1 — Esqueleto
 Alvo: `unit/test_logging.py`, `integration/test_erros_globais.py`, `integration/test_health.py` (liveness)
-- [ ] `pyproject.toml` (uv, Python 3.14), ruff, mypy, `pytest.ini` com marcador `e2e`.
-- [ ] `core/config.py` (`Settings` com todas as variáveis da spec §9, `get_settings` em cache).
-- [ ] `core/contexto.py` (`request_id`, `consulta_id` em `contextvars`) e `core/logging.py` (JSON + filtro de contexto).
-- [ ] `core/errors.py` (`AppError` e subclasses), `schemas/erro.py`, handlers e middleware de request id em `main.py`.
-- [ ] `GET /health`.
+- [x] `pyproject.toml` (uv, Python 3.14), ruff, mypy, `pytest.ini` com marcador `e2e`.
+- [x] `core/config.py` (`Settings` com todas as variáveis da spec §9, `get_settings` em cache).
+- [x] `core/contexto.py` (`request_id`, `consulta_id` em `contextvars`) e `core/logging.py` (JSON + filtro de contexto).
+- [x] `core/errors.py` (`AppError` e subclasses), `schemas/erro.py`, handlers e middleware de request id em `main.py`.
+- [x] `GET /health`.
 
 ## M2 — Documento e schemas
 Alvo: `unit/test_documento.py`, `unit/test_schemas.py`
