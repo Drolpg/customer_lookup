@@ -25,29 +25,81 @@ tratamento de falhas**.
 
 Ciclo de vida da consulta:
 
-```text
-PENDING ──▶ PROCESSING ──▶ SUCCESS
-   │            │  ▲
-   │            └──┘ retry (continua PROCESSING; tentativas e ultimo_erro visíveis)
-   │            └────────▶ ERROR   (erro permanente ou tentativas esgotadas)
-   └─────────────────────▶ ERROR   (fila indisponível no momento da criação)
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> PENDING: POST (202)
+    PENDING --> PROCESSING: worker faz o claim
+    PROCESSING --> PROCESSING: retry
+    PROCESSING --> SUCCESS: 200 válido
+    PROCESSING --> ERROR: permanente ou esgotou
+    PENDING --> ERROR: fila indisponível (503)
+    SUCCESS --> [*]
+    ERROR --> [*]
 ```
 
-`SUCCESS` e `ERROR` são terminais: nunca são sobrescritos.
+`SUCCESS` e `ERROR` são terminais: nunca são sobrescritos. Durante o backoff a consulta continua `PROCESSING`, com
+`tentativas` e `ultimo_erro` visíveis no `GET`.
 
 ## Arquitetura
 
-```text
-Cliente ──POST──▶ api (FastAPI) ──1. INSERT PENDING + commit──▶ db (PostgreSQL)
-                     │
-                     └──2. publica consulta_id──▶ redis (broker Celery)
-                                                     │
-                                                     ▼
-                                     worker (Celery) ──claim: PROCESSING, tentativas+1──▶ db
-                                                     │
-                                                     ├──POST /fake/customer──▶ externo (API fake)
-                                                     │
-                                                     └──SUCCESS / ERROR / retry agendado──▶ db
+```mermaid
+flowchart LR
+    cliente(["Sistema cliente"])
+
+    subgraph compose["docker compose"]
+        api["FastAPI<br/>api"]
+        db[("PostgreSQL<br/>db")]
+        redis[("Redis<br/>broker e rate limit")]
+        worker["Celery<br/>worker"]
+        externo["API externa fake<br/>externo"]
+    end
+
+    cliente -- "1. POST /api/v1/consultas" --> api
+    api -- "2. INSERT PENDING + commit" --> db
+    api -- "3. publica consulta_id" --> redis
+    api -. "4. 202 Accepted + Location" .-> cliente
+    redis -- "5. entrega a tarefa" --> worker
+    worker -- "6. claim: PROCESSING, tentativas + 1" --> db
+    worker -- "7. POST /fake/customer" --> externo
+    worker -- "8. SUCCESS ou ERROR" --> db
+    worker -. "retry com backoff (countdown)" .-> redis
+    cliente -- "GET /api/v1/consultas/{id}" --> api
+```
+
+O `POST` termina no passo 4: a chamada externa acontece depois, no worker. O fluxo completo, com retry:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Sistema cliente
+    participant A as API
+    participant DB as PostgreSQL
+    participant R as Redis
+    participant W as Worker
+    participant E as API externa
+
+    C->>A: POST /api/v1/consultas
+    A->>DB: INSERT (PENDING) + commit
+    A->>R: publica consulta_id + request_id
+    A-->>C: 202 {id, status: PENDING} + Location
+    R->>W: entrega a tarefa
+    loop no máximo RETRY_MAX_TENTATIVAS
+        W->>DB: claim atômico (PROCESSING, tentativas + 1)
+        W->>E: POST /fake/customer (timeout 2 s / 3 s)
+        alt 200 com corpo válido
+            E-->>W: nome, score, situacao
+            W->>DB: SUCCESS + resultado
+        else transitório (timeout, conexão, 5xx, 408, 429)
+            W->>DB: grava ultimo_erro
+            W->>R: reagenda com backoff exponencial + jitter
+        else permanente (outros 4xx, corpo inválido) ou última tentativa
+            W->>DB: ERROR
+        end
+    end
+    C->>A: GET /api/v1/consultas/{id}
+    A->>DB: SELECT
+    A-->>C: status, tentativas, datas, resultado
 ```
 
 Cinco serviços no `docker compose`: `api`, `worker`, `externo`, `db` e `redis`. `api`, `worker` e `externo` usam a
