@@ -36,6 +36,31 @@ class FilaIndisponivel(AppError):
         )
 
 
+class NaoAutorizado(AppError):
+    def __init__(self) -> None:
+        super().__init__("Chave de API ausente ou inválida.", code="UNAUTHORIZED", status_code=401)
+
+
+class LimiteExcedido(AppError):
+    def __init__(self, retry_after_s: int) -> None:
+        super().__init__(
+            "Limite de requisições excedido. Tente novamente mais tarde.",
+            code="RATE_LIMITED",
+            status_code=429,
+            headers={"Retry-After": str(retry_after_s)},
+        )
+
+
+class ServicoIndisponivel(AppError):
+    def __init__(self, componentes: list[str]) -> None:
+        super().__init__(
+            "Serviço indisponível.",
+            code="SERVICE_UNAVAILABLE",
+            status_code=503,
+            details=[{"component": c, "status": "indisponível"} for c in componentes],
+        )
+
+
 class DocumentoInvalido(AppError):
     def __init__(self, motivo: str) -> None:
         super().__init__(

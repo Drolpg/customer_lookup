@@ -85,6 +85,7 @@ Registro do que foi simplificado conscientemente. A versão final vai para o REA
 | Paginação por offset | Simples e com total | Lenta em páginas profundas | Paginação por cursor (keyset) |
 | Fake com estado em memória | Suficiente para demonstração | Contadores somem ao reiniciar | Estado em Redis |
 | Sem `Idempotency-Key` no `POST` | Fora do escopo pedido | Reenvio do cliente cria consulta duplicada | Header `Idempotency-Key` com unicidade no banco |
+| JSON malformado sem chave recebe 422 (não 401) | O FastAPI lê o corpo antes de resolver dependências; nada é gravado | O cliente sem chave descobre que o JSON está malformado | Autenticação em middleware, antes da leitura do corpo |
 | API key única, sem rotação nem escopos | Enunciado dispensa autenticação sofisticada | Vazamento exige troca manual | Várias chaves com hash no banco, ou OAuth2/JWT |
 | Rate limit por janela fixa | Simples e atômico | Rajada na virada da janela | Janela deslizante ou token bucket |
 | Sem métricas nem tracing | Logs estruturados cobrem o diagnóstico pedido | Sem visão agregada | Prometheus + OpenTelemetry |

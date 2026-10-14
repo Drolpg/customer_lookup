@@ -58,9 +58,9 @@ Alvo: `unit/test_celery_config.py`, `integration/test_task_celery.py`, `integrat
 
 ## M8 — Autenticação, rate limit e readiness
 Alvo: `integration/test_auth.py`, `integration/test_rate_limit.py`, `integration/test_health.py`
-- [ ] `X-API-Key` com `secrets.compare_digest` e esquema de segurança no OpenAPI.
-- [ ] `services/rate_limit.py` (janela fixa, `Retry-After`, fail-open).
-- [ ] `GET /health/ready` (banco e Redis).
+- [x] `X-API-Key` com `secrets.compare_digest` e esquema de segurança no OpenAPI.
+- [x] `services/rate_limit.py` (janela fixa, `Retry-After`, fail-open).
+- [x] `GET /health/ready` (banco e Redis).
 
 ## M9 — Docker e E2E
 Alvo: `infra/test_docker_compose.py`, `e2e/test_e2e_compose.py`

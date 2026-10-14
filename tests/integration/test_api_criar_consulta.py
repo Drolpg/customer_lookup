@@ -13,7 +13,7 @@ from customer_lookup.core.config import Settings, get_settings
 from customer_lookup.core.dominio import StatusConsulta, TipoDocumento
 from customer_lookup.core.logging import LOGGER_NAME, JsonFormatter
 from customer_lookup.models import Consulta
-from tests.fakes import PublicadorFake
+from tests.fakes import API_KEY_TESTE, PublicadorFake
 
 URL = "/api/v1/consultas"
 
@@ -74,7 +74,7 @@ def test_tipo_divergente_do_tamanho_retorna_invalid_document(client: TestClient)
 
 
 def test_com_validacao_fraca_aceita_documento_com_dv_errado(app, client: TestClient, db: Session):
-    app.dependency_overrides[get_settings] = lambda: Settings(api_key="x", documento_validar_dv=False)
+    app.dependency_overrides[get_settings] = lambda: Settings(api_key=API_KEY_TESTE, documento_validar_dv=False)
 
     resp = client.post(URL, json={"documento": "52998224799", "tipo": "CPF"})
 

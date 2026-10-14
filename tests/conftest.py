@@ -8,7 +8,7 @@ import os
 
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
-os.environ["API_KEY"] = "chave-de-teste"
+os.environ["API_KEY"] = "chave-de-teste"  # mesmo valor de API_KEY_TESTE
 
 import pytest
 from fastapi import FastAPI
@@ -55,9 +55,17 @@ def publicador(session_factory):
 
 
 @pytest.fixture
-def client(app, session_factory, publicador):
-    from customer_lookup.api.deps import get_publicador
+def redis_fake():
+    import fakeredis
+
+    return fakeredis.FakeRedis()
+
+
+@pytest.fixture
+def client(app, session_factory, publicador, redis_fake):
+    from customer_lookup.api.deps import get_publicador, get_redis
     from customer_lookup.db.session import get_db
+    from tests.fakes import API_KEY_TESTE
 
     def _get_db_teste():
         with session_factory() as session:
@@ -65,8 +73,9 @@ def client(app, session_factory, publicador):
 
     app.dependency_overrides[get_db] = _get_db_teste
     app.dependency_overrides[get_publicador] = lambda: publicador
+    app.dependency_overrides[get_redis] = lambda: redis_fake
     # raise_server_exceptions=False: queremos ver a resposta 500 produzida pelo handler global
-    with TestClient(app, raise_server_exceptions=False) as c:
+    with TestClient(app, raise_server_exceptions=False, headers={"X-API-Key": API_KEY_TESTE}) as c:
         yield c
 
 

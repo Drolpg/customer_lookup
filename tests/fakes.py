@@ -3,12 +3,16 @@
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import NoReturn
 
+import redis
 from sqlalchemy.orm import Session, sessionmaker
 
 from customer_lookup.core.dominio import StatusConsulta
 from customer_lookup.models import Consulta
 from customer_lookup.ports import ErroIntegracao, FalhaAoPublicar
+
+API_KEY_TESTE = "chave-de-teste"  # o conftest define API_KEY com este valor antes de importar a aplicação
 
 
 @dataclass
@@ -63,3 +67,13 @@ class ClienteExternoFake:
         if isinstance(resposta, ErroIntegracao):
             raise resposta
         return resposta
+
+
+class RedisFora:
+    """Redis indisponível que falha na hora (uma conexão recusada de verdade leva segundos no Windows)."""
+
+    def pipeline(self) -> NoReturn:
+        raise redis.ConnectionError("Error 111 connecting to redis:6379. Connection refused.")
+
+    def ping(self) -> NoReturn:
+        raise redis.ConnectionError("Error 111 connecting to redis:6379. Connection refused.")

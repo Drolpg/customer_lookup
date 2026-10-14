@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from customer_lookup.api.deps import get_publicador
+from customer_lookup.api.deps import exigir_api_key, get_publicador, limitar_taxa
 from customer_lookup.core import contexto
 from customer_lookup.core.config import Settings, get_settings
 from customer_lookup.core.dominio import StatusConsulta
@@ -16,12 +16,17 @@ from customer_lookup.schemas.consulta import ConsultaCreate, ConsultaCriada, Con
 from customer_lookup.services import consulta_service
 
 PREFIXO = "/api/v1/consultas"
-router = APIRouter(prefix=PREFIXO, tags=["consultas"])
+router = APIRouter(prefix=PREFIXO, tags=["consultas"], dependencies=[Depends(exigir_api_key)])
 
 DbDep = Annotated[Session, Depends(get_db)]
 
 
-@router.post("", status_code=status.HTTP_202_ACCEPTED, summary="Solicita uma consulta de cliente")
+@router.post(
+    "",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Solicita uma consulta de cliente",
+    dependencies=[Depends(limitar_taxa)],
+)
 def criar_consulta(
     dados: ConsultaCreate,
     response: Response,
