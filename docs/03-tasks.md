@@ -17,9 +17,9 @@ Alvo: `unit/test_logging.py`, `integration/test_erros_globais.py`, `integration/
 
 ## M2 — Documento e schemas
 Alvo: `unit/test_documento.py`, `unit/test_schemas.py`
-- [ ] `core/documento.py`: `normalizar`, `validar(documento, tipo, validar_dv)`, `mascarar`; CPF e CNPJ por módulo 11.
-- [ ] Teste que confirma que `12345678901` é inválido e `12345678909` é válido.
-- [ ] `schemas/consulta.py`: `ConsultaCreate` (`extra="forbid"`), `ConsultaCriada`, `ConsultaRead`, `PaginaConsultas`.
+- [x] `core/documento.py`: `normalizar`, `validar(documento, tipo, validar_dv)`, `mascarar`; CPF e CNPJ por módulo 11.
+- [x] Teste que confirma que `12345678901` é inválido e `12345678909` é válido.
+- [x] `schemas/consulta.py`: `ConsultaCreate` (`extra="forbid"`), `ConsultaCriada`, `ConsultaRead`, `PaginaConsultas`.
 
 ## M3 — Modelo e migração
 Alvo: `infra/test_migrations.py`

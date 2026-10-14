@@ -19,3 +19,13 @@ class AppError(Exception):
         self.status_code = status_code
         self.details = details
         self.headers = headers
+
+
+class DocumentoInvalido(AppError):
+    def __init__(self, motivo: str) -> None:
+        super().__init__(
+            "Documento informado é inválido.",
+            code="INVALID_DOCUMENT",
+            status_code=422,
+            details=[{"field": "documento", "message": motivo}],
+        )

@@ -32,6 +32,7 @@ _MENSAGENS_VALIDACAO = {
     "uuid_parsing": "UUID inválido",
     "enum": "valor não permitido",
     "string_type": "deve ser texto",
+    "string_too_long": "texto longo demais",
     "int_parsing": "deve ser um número inteiro",
     "greater_than_equal": "valor abaixo do mínimo",
     "less_than_equal": "valor acima do máximo",
