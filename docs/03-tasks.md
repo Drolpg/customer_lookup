@@ -43,10 +43,10 @@ Alvo: `integration/test_fake_externo.py`
 
 ## M6 — Integração e processamento
 Alvo: `unit/test_cliente_http.py`, `unit/test_politica_retry.py`, `integration/test_processar_consulta.py`
-- [ ] `ports.py`: `ClienteExterno` e exceções de integração.
-- [ ] `adapters/cliente_http.py` (httpx, timeouts, classificação em exceções de integração).
-- [ ] `services/politica_retry.py` (`decidir` e `calcular_delay`, com aleatoriedade injetável).
-- [ ] `processar_consulta`: claim, chamada fora de transação, sucesso, retry, esgotamento, permanente, idempotência,
+- [x] `ports.py`: `ClienteExterno` e exceções de integração.
+- [x] `adapters/cliente_http.py` (httpx, timeouts, classificação em exceções de integração).
+- [x] `services/politica_retry.py` (`decidir` e `calcular_delay`, com aleatoriedade injetável).
+- [x] `services/processamento.py` — `processar_consulta`: claim, chamada fora de transação, sucesso, retry, esgotamento, permanente, idempotência,
       limite já atingido, outro worker finalizou antes.
 
 ## M7 — Celery

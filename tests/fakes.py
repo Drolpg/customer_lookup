@@ -1,13 +1,14 @@
 """Implementações falsas das portas, para testar sem Redis/Celery."""
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from sqlalchemy.orm import Session, sessionmaker
 
 from customer_lookup.core.dominio import StatusConsulta
 from customer_lookup.models import Consulta
-from customer_lookup.ports import FalhaAoPublicar
+from customer_lookup.ports import ErroIntegracao, FalhaAoPublicar
 
 
 @dataclass
@@ -33,3 +34,32 @@ class PublicadorFake:
             consulta = outra_sessao.get(Consulta, consulta_id)
             status = consulta.status if consulta else None
         self.publicacoes.append(Publicacao(consulta_id, request_id, status))
+
+
+@dataclass
+class ChamadaExterna:
+    documento: str
+    transacao_aberta: bool
+
+
+@dataclass
+class ClienteExternoFake:
+    """Devolve as respostas do roteiro, em ordem (dict = sucesso; ErroIntegracao = falha).
+
+    `ao_chamar` permite simular algo acontecendo durante a chamada (ex.: outro worker finalizando a consulta).
+    """
+
+    roteiro: list[dict[str, object] | ErroIntegracao]
+    sessao_observada: Session | None = None
+    ao_chamar: Callable[[], None] | None = None
+    chamadas: list[ChamadaExterna] = field(default_factory=list)
+
+    def consultar_cliente(self, documento: str) -> dict[str, object]:
+        aberta = self.sessao_observada.in_transaction() if self.sessao_observada else False
+        self.chamadas.append(ChamadaExterna(documento, aberta))
+        if self.ao_chamar:
+            self.ao_chamar()
+        resposta = self.roteiro[min(len(self.chamadas), len(self.roteiro)) - 1]
+        if isinstance(resposta, ErroIntegracao):
+            raise resposta
+        return resposta

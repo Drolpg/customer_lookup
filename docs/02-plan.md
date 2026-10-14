@@ -10,7 +10,7 @@ HTTP ─▶ api/ (routers, auth, rate limit) ─▶ services/ (regras) ─▶ mo
                                                 ├─▶ ports.PublicadorDeTarefas ◀── adapters/publicador_celery.py ─▶ Redis
                                                 └─▶ ports.ClienteExterno      ◀── adapters/cliente_http.py (httpx) ─▶ API fake
 
-Redis ─▶ worker/tasks.py (casca fina) ─▶ services/consulta_service.processar_consulta
+Redis ─▶ worker/tasks.py (casca fina) ─▶ services/processamento.processar_consulta
 ```
 - `api/` só traduz HTTP ⇄ services. `services/` não importa FastAPI, Celery nem httpx: depende de `ports.py`.
 - `adapters/` implementam as portas; são os únicos módulos que conhecem Celery (publicação) e httpx.
@@ -27,7 +27,7 @@ src/customer_lookup/
   db/         base.py  session.py
   models/     consulta.py
   schemas/    consulta.py  erro.py
-  services/   consulta_service.py  politica_retry.py  rate_limit.py
+  services/   consulta_service.py  processamento.py  politica_retry.py  rate_limit.py
   adapters/   cliente_http.py  publicador_celery.py
   worker/     celery_app.py  tasks.py
   fake_externo/ app.py
