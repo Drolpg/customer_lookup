@@ -23,9 +23,10 @@ Alvo: `unit/test_documento.py`, `unit/test_schemas.py`
 
 ## M3 — Modelo e migração
 Alvo: `infra/test_migrations.py`
-- [ ] `db/base.py`, `db/session.py`, `models/consulta.py` (enums `StatusConsulta`, `TipoDocumento`).
-- [ ] Alembic: `env.py` com URL das settings e `disable_existing_loggers=False`; migração inicial revisada.
-- [ ] Teste: `upgrade head`, `downgrade base` e models sincronizados com a migração.
+- [x] `db/base.py`, `db/session.py`, `models/consulta.py` (enums `StatusConsulta`, `TipoDocumento`).
+- [x] Alembic: `env.py` com URL das settings e `disable_existing_loggers=False`; migração inicial revisada.
+- [x] Teste: `upgrade head`, `downgrade base` e models sincronizados com a migração.
+- [ ] Validar `upgrade`/`downgrade` em Postgres real (coberto pelo E2E do M9).
 
 ## M4 — Criação, obtenção e listagem
 Alvo: `integration/test_api_criar_consulta.py`, `test_api_obter_consulta.py`, `test_api_listar_consultas.py`
