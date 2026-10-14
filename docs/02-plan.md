@@ -92,4 +92,4 @@ Registro do que foi simplificado conscientemente. A versão final vai para o REA
 | Sem retenção de consultas antigas | Volume pequeno | Crescimento da tabela | Job de expurgo por idade |
 | CNPJ alfanumérico não suportado | Regra nova, fora do escopo | Rejeição de CNPJs novos | Estender `core/documento.py` |
 | Sem DLQ | Erros são gravados na própria consulta | Mensagem malformada só aparece no log | Fila de mensagens mortas |
-| Consulta presa em `PROCESSING` se o broker cair durante o agendamento do retry | Janela muito pequena | Consulta sem desfecho | Reconciliação periódica de `PROCESSING` antigas |
+| Consulta presa em `PROCESSING` se o broker cair durante o agendamento do retry, ou se o banco ficar fora além de 10 reagendamentos | Janelas raras; o worker já reagenda falhas de banco | Consulta sem desfecho | Reconciliação periódica de `PROCESSING` antigas |

@@ -1,8 +1,11 @@
 """Dependências injetadas nas rotas."""
 
+from functools import cache
+
+from customer_lookup.adapters.publicador_celery import PublicadorCelery
 from customer_lookup.ports import PublicadorDeTarefas
 
 
+@cache
 def get_publicador() -> PublicadorDeTarefas:
-    # Implementação real (Celery) entra no M7; os testes sobrescrevem esta dependência.
-    raise NotImplementedError("publicador de tarefas ainda não configurado")
+    return PublicadorCelery()

@@ -41,15 +41,19 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, default=str, ensure_ascii=False)
 
 
-def configure_logging(level: int | str = logging.INFO) -> None:
-    """Configura só o logger da aplicação; `propagate` continua ligado para o `caplog` dos testes."""
-    logger = logging.getLogger(LOGGER_NAME)
-    logger.setLevel(level.upper() if isinstance(level, str) else level)
-    logger.propagate = True
+def configure_logging(level: int | str = logging.INFO, outros: tuple[str, ...] = ()) -> None:
+    """Configura o logger da aplicação (e `outros`, ex.: "celery") sem mexer no root logger.
 
-    if not any(isinstance(f, ContextoFilter) for f in logger.filters):
-        logger.addFilter(ContextoFilter())
-    if not any(isinstance(h.formatter, JsonFormatter) for h in logger.handlers):
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(JsonFormatter())
-        logger.addHandler(handler)
+    `propagate` continua ligado para o `caplog` dos testes.
+    """
+    nivel = level.upper() if isinstance(level, str) else level
+    for nome in (LOGGER_NAME, *outros):
+        logger = logging.getLogger(nome)
+        logger.setLevel(nivel)
+        logger.propagate = True
+        if not any(isinstance(f, ContextoFilter) for f in logger.filters):
+            logger.addFilter(ContextoFilter())
+        if not any(isinstance(h.formatter, JsonFormatter) for h in logger.handlers):
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setFormatter(JsonFormatter())
+            logger.addHandler(handler)

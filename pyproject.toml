@@ -51,3 +51,8 @@ dev = [
     "pyyaml>=6.0.3",
     "ruff>=0.17.0",
 ]
+
+# O Celery não publica tipos: seus decorators (task, sinais) são "untyped" para o mypy.
+[[tool.mypy.overrides]]
+module = ["customer_lookup.worker.*"]
+disallow_untyped_decorators = false

@@ -51,10 +51,10 @@ Alvo: `unit/test_cliente_http.py`, `unit/test_politica_retry.py`, `integration/t
 
 ## M7 — Celery
 Alvo: `unit/test_celery_config.py`, `integration/test_task_celery.py`, `integration/test_fluxo_completo.py`
-- [ ] `worker/celery_app.py` (configuração da spec e do plano; logging pelo sinal `setup_logging`).
-- [ ] `worker/tasks.py` (task fina; `self.retry(countdown=…)`; restaura `request_id`).
-- [ ] `adapters/publicador_celery.py` (falha rápida com Redis fora).
-- [ ] Fluxo completo em modo eager; logs do worker com `request_id` e `consulta_id`; documento ausente dos logs.
+- [x] `worker/celery_app.py` (configuração da spec e do plano; logging pelo sinal `setup_logging`).
+- [x] `worker/tasks.py` (task fina; `self.retry(countdown=…)`; restaura `request_id`).
+- [x] `adapters/publicador_celery.py` (falha rápida com Redis fora).
+- [x] Fluxo completo em modo eager; logs do worker com `request_id` e `consulta_id`; documento ausente dos logs.
 
 ## M8 — Autenticação, rate limit e readiness
 Alvo: `integration/test_auth.py`, `integration/test_rate_limit.py`, `integration/test_health.py`
