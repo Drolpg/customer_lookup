@@ -48,7 +48,55 @@ def app() -> FastAPI:
 
 
 @pytest.fixture
-def client(app):
+def publicador(session_factory):
+    from tests.fakes import PublicadorFake
+
+    return PublicadorFake(session_factory)
+
+
+@pytest.fixture
+def client(app, session_factory, publicador):
+    from customer_lookup.api.deps import get_publicador
+    from customer_lookup.db.session import get_db
+
+    def _get_db_teste():
+        with session_factory() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = _get_db_teste
+    app.dependency_overrides[get_publicador] = lambda: publicador
     # raise_server_exceptions=False: queremos ver a resposta 500 produzida pelo handler global
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
+
+
+@pytest.fixture
+def criar_consulta(db):
+    """Insere consultas direto no banco (sem passar pela API)."""
+    import uuid
+    from datetime import UTC, datetime
+
+    from customer_lookup.core.dominio import StatusConsulta, TipoDocumento
+    from customer_lookup.models import Consulta
+
+    def _criar(
+        *,
+        documento: str = "52998224725",
+        tipo: TipoDocumento = TipoDocumento.CPF,
+        status: StatusConsulta = StatusConsulta.PENDING,
+        criado_em: datetime | None = None,
+        **outros: object,
+    ) -> Consulta:
+        outros.setdefault("id", uuid.uuid4())
+        consulta = Consulta(
+            documento=documento,
+            tipo=tipo,
+            status=status,
+            criado_em=criado_em or datetime.now(UTC),
+            **outros,
+        )
+        db.add(consulta)
+        db.commit()
+        return consulta
+
+    return _criar

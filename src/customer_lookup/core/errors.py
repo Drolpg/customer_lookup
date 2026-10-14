@@ -21,6 +21,21 @@ class AppError(Exception):
         self.headers = headers
 
 
+class ConsultaNaoEncontrada(AppError):
+    def __init__(self) -> None:
+        super().__init__("Consulta não encontrada.", code="CONSULTA_NOT_FOUND", status_code=404)
+
+
+class FilaIndisponivel(AppError):
+    def __init__(self, consulta_id: str) -> None:
+        super().__init__(
+            "Fila de processamento indisponível. A consulta foi registrada com erro; tente novamente.",
+            code="QUEUE_UNAVAILABLE",
+            status_code=503,
+            details=[{"id": consulta_id}],
+        )
+
+
 class DocumentoInvalido(AppError):
     def __init__(self, motivo: str) -> None:
         super().__init__(

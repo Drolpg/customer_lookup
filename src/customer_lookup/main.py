@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from customer_lookup.api import health
+from customer_lookup.api.v1 import consultas
 from customer_lookup.core import contexto
 from customer_lookup.core.config import get_settings
 from customer_lookup.core.errors import AppError
@@ -36,6 +37,7 @@ _MENSAGENS_VALIDACAO = {
     "int_parsing": "deve ser um número inteiro",
     "greater_than_equal": "valor abaixo do mínimo",
     "less_than_equal": "valor acima do máximo",
+    "string_pattern_mismatch": "formato inválido",
 }
 
 
@@ -122,6 +124,7 @@ def create_app() -> FastAPI:
     for tipo, handler in handlers.items():
         app.add_exception_handler(tipo, handler)
 
+    app.include_router(consultas.router)
     app.include_router(health.router)
     return app
 

@@ -30,10 +30,10 @@ Alvo: `infra/test_migrations.py`
 
 ## M4 — Criação, obtenção e listagem
 Alvo: `integration/test_api_criar_consulta.py`, `test_api_obter_consulta.py`, `test_api_listar_consultas.py`
-- [ ] `ports.py` (`PublicadorDeTarefas`, `ClienteExterno`, exceções de integração).
-- [ ] `services/consulta_service.py`: `criar`, `obter`, `listar`.
-- [ ] Routers `v1/consultas.py` e `deps.py` (sessão, publicador).
-- [ ] Testes: 202 + `Location`; publicação depois do commit; 422 `VALIDATION_ERROR` e `INVALID_DOCUMENT`
+- [x] `ports.py`: `PublicadorDeTarefas` e `FalhaAoPublicar` (o `ClienteExterno` entra no M6, onde é usado).
+- [x] `services/consulta_service.py`: `criar`, `obter`, `listar`.
+- [x] Routers `v1/consultas.py` e `deps.py` (sessão, publicador).
+- [x] Testes: 202 + `Location`; publicação depois do commit; 422 `VALIDATION_ERROR` e `INVALID_DOCUMENT`
       (nada gravado); 503 com consulta `ERROR`; 404; 422 de id; paginação, filtros e ordenação.
 
 ## M5 — API externa fake
@@ -43,6 +43,7 @@ Alvo: `integration/test_fake_externo.py`
 
 ## M6 — Integração e processamento
 Alvo: `unit/test_cliente_http.py`, `unit/test_politica_retry.py`, `integration/test_processar_consulta.py`
+- [ ] `ports.py`: `ClienteExterno` e exceções de integração.
 - [ ] `adapters/cliente_http.py` (httpx, timeouts, classificação em exceções de integração).
 - [ ] `services/politica_retry.py` (`decidir` e `calcular_delay`, com aleatoriedade injetável).
 - [ ] `processar_consulta`: claim, chamada fora de transação, sucesso, retry, esgotamento, permanente, idempotência,
