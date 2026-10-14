@@ -1,0 +1,5 @@
+# O código roda em containers Linux: CRLF em scripts quebra a execução ("/bin/sh^M: not found").
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
