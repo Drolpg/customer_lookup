@@ -44,27 +44,36 @@ stateDiagram-v2
 ## Arquitetura
 
 ```mermaid
-flowchart TB
-    cliente(["Sistema cliente"])
+%%{init: {"flowchart": {"rankSpacing": 35, "nodeSpacing": 30}}}%%
+flowchart LR
+    cliente(["Sistema<br/>cliente"])
 
     subgraph compose["docker compose"]
-        direction TB
-        api["FastAPI · api"]
-        redis[("Redis<br/>broker e rate limit")]
-        db[("PostgreSQL · db")]
-        worker["Celery · worker"]
-        externo["API externa fake · externo"]
+        api["FastAPI<br/>api"]
+        redis[("Redis")]
+        worker["Celery<br/>worker"]
+        db[("PostgreSQL")]
+        externo["API externa<br/>fake"]
     end
 
-    cliente -- "1. POST /api/v1/consultas" --> api
-    api -. "4. 202 Accepted + Location" .-> cliente
-    api -- "2. INSERT PENDING + commit" --> db
-    api -- "3. publica consulta_id" --> redis
-    redis -- "5. entrega a tarefa" --> worker
-    worker -. "retry com backoff" .-> redis
-    worker -- "6. claim: PROCESSING, tentativas + 1<br/>8. SUCCESS ou ERROR" --> db
-    worker -- "7. POST /fake/customer" --> externo
+    cliente -- "1. POST" --> api
+    api -. "4. 202" .-> cliente
+    api -- "2. INSERT" --> db
+    api -- "3. publica" --> redis
+    redis -- "5. tarefa" --> worker
+    worker -. "retry" .-> redis
+    worker -- "6. claim<br/>8. resultado" --> db
+    worker -- "7. POST" --> externo
 ```
+
+1. O cliente envia `POST /api/v1/consultas`.
+2. A API valida e grava a consulta como `PENDING` (commit).
+3. A API publica o `consulta_id` no Redis.
+4. A API responde `202 Accepted` com `Location`, sem esperar a consulta externa.
+5. O worker Celery recebe a tarefa.
+6. O worker faz o *claim* atômico: `PROCESSING` e `tentativas + 1`.
+7. O worker chama `POST /fake/customer`; em erro transitório, reagenda no Redis com backoff (*retry*).
+8. O worker grava `SUCCESS` com o resultado ou `ERROR` com o último erro.
 
 O `POST` termina no passo 4: a chamada externa acontece depois, no worker. O fluxo completo, com retry:
 
