@@ -44,27 +44,26 @@ stateDiagram-v2
 ## Arquitetura
 
 ```mermaid
-flowchart LR
+flowchart TB
     cliente(["Sistema cliente"])
 
     subgraph compose["docker compose"]
-        api["FastAPI<br/>api"]
-        db[("PostgreSQL<br/>db")]
+        direction TB
+        api["FastAPI · api"]
         redis[("Redis<br/>broker e rate limit")]
-        worker["Celery<br/>worker"]
-        externo["API externa fake<br/>externo"]
+        db[("PostgreSQL · db")]
+        worker["Celery · worker"]
+        externo["API externa fake · externo"]
     end
 
     cliente -- "1. POST /api/v1/consultas" --> api
+    api -. "4. 202 Accepted + Location" .-> cliente
     api -- "2. INSERT PENDING + commit" --> db
     api -- "3. publica consulta_id" --> redis
-    api -. "4. 202 Accepted + Location" .-> cliente
     redis -- "5. entrega a tarefa" --> worker
-    worker -- "6. claim: PROCESSING, tentativas + 1" --> db
+    worker -. "retry com backoff" .-> redis
+    worker -- "6. claim: PROCESSING, tentativas + 1<br/>8. SUCCESS ou ERROR" --> db
     worker -- "7. POST /fake/customer" --> externo
-    worker -- "8. SUCCESS ou ERROR" --> db
-    worker -. "retry com backoff (countdown)" .-> redis
-    cliente -- "GET /api/v1/consultas/{id}" --> api
 ```
 
 O `POST` termina no passo 4: a chamada externa acontece depois, no worker. O fluxo completo, com retry:
