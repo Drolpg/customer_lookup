@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint, tipos e testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      # Versão do Python lida de .python-version.
+      - name: Instalar dependências
+        run: uv sync --locked
+
+      - name: Ruff (lint)
+        run: uv run ruff check .
+
+      - name: Ruff (formatação)
+        run: uv run ruff format --check .
+
+      - name: Mypy
+        run: uv run mypy
+
+      # Cobertura como informação, sem percentual mínimo.
+      - name: Pytest
+        run: uv run pytest --cov=customer_lookup --cov-report=term-missing
+
+  docker:
+    name: Compose e imagem
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar docker-compose.yml (sem .env)
+        run: docker compose config --quiet
+
+      - name: Build da imagem
+        run: docker compose build api
